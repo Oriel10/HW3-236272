@@ -9,6 +9,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:snapping_sheet/snapping_sheet.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'dart:ui' as ui;
+
 
 enum Status {
   AuthenticatingLogin,
@@ -215,8 +217,11 @@ class _RandomWordsState extends State<RandomWords> {
   final _saved = <WordPair>{};
   final _biggerFont = const TextStyle(fontSize: 18);
 
+
   NetworkImage? profilePicCloud;
   var profilePicLocal;
+  bool _isSnappingSheetOpen = false;
+  double _blurLevel = 0.0;
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -786,7 +791,6 @@ class _RandomWordsState extends State<RandomWords> {
                 });
       },
     );
-    // final ScrollController _scrollController = ScrollController();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Startup Name Generator'),
@@ -797,6 +801,11 @@ class _RandomWordsState extends State<RandomWords> {
           : SnappingSheet(
               lockOverflowDrag: true,
               controller: snappingSheetController,
+              onSheetMoved: (sheetPosition){
+                setState(() {
+                  _blurLevel = sheetPosition.relativeToSnappingPositions * 8;
+                });
+              },
               snappingPositions: [
                 SnappingPosition.factor(
                   positionFactor: 0.0,
@@ -809,7 +818,23 @@ class _RandomWordsState extends State<RandomWords> {
                 ),
                 SnappingPosition.factor(positionFactor: 0.7),
               ],
-              child: listView,
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  listView
+                ] + ((_blurLevel > 0) ?
+                <Widget>[BackdropFilter(
+                  filter: ui.ImageFilter.blur(
+                    sigmaX: _blurLevel,
+                    sigmaY: _blurLevel,
+                  ),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                )] :
+                    <Widget>[])
+                ,
+              ),
               grabbingHeight: 50,
               grabbing: GestureDetector(
                 onTap: () {
@@ -834,10 +859,6 @@ class _RandomWordsState extends State<RandomWords> {
                             positionFactor: 0.2,
                           ));
                     }
-                    // print(
-                    //     'snappingSheetController: ${snappingSheetController.isAttached}');
-                    // snappingSheetController.snapToPosition(
-                    //     SnappingPosition.factor(positionFactor: 0.7));
                   }
                 },
                 child: Container(
