@@ -1,5 +1,4 @@
 // import 'dart:html';
-
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,10 +16,6 @@ enum Status {
   Unauthenticated,
   Authenticated
 }
-
-//Questions:
-//1)what is index??? i thought its the last tile but now i see that alreadySaved is true or false
-//correspond with the pressed tile.
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,11 +77,6 @@ class LoginNotifier extends ChangeNotifier {
     List<String> suggestionsSecond = [];
     List<WordPair> helper = [];
 
-    // for(var i=0;i<_saved.length;i++){
-    //   suggestionsFirst.add(_saved[i].first);
-    //   suggestionsSecond.add(_saved[i].second);
-    // }
-
     for (var i = 0; i < suggestionsFirstCloud.length; i++) {
       helper.add(WordPair(suggestionsFirstCloud[i], suggestionsSecondCloud[i]));
       suggestionsFirst.add(suggestionsFirstCloud[i]);
@@ -115,7 +105,7 @@ class LoginNotifier extends ChangeNotifier {
   }
 
   Future<DocumentSnapshot> getUserSuggestions(String email) {
-    return _firestore.collection('users').doc(email).get();
+      return _firestore.collection('users').doc(email).get();
   }
 
   Future<bool> signIn(String email, String password) async {
@@ -205,11 +195,6 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Startup Name Generator',
         theme: ThemeData(
-            // Add the 5 lines from here...
-            // appBarTheme: const AppBarTheme(
-            //   backgroundColor: Colors.red,
-            //   foregroundColor: Colors.black,
-            // ),
             primarySwatch: Colors.deepPurple),
         home: const RandomWords(),
       ),
@@ -238,6 +223,8 @@ class _RandomWordsState extends State<RandomWords> {
 
   TextEditingController passwordVerificationController =
       TextEditingController();
+
+  final snappingSheetController = SnappingSheetController();
 
   @override
   void dispose() {
@@ -320,9 +307,7 @@ class _RandomWordsState extends State<RandomWords> {
                                   DocumentSnapshot doc = await futureDoc;
                                   List currSuggestionsFirst = doc?.get('suggestionsFirst');
 
-                                  // _handleProfilePicUpdate();
-                                  print('here');
-                                  // _handleProfilePicUpdate();
+                                  // Handle profile pic
                                   String cloudPath = "images/profile_pics/profile_${emailController.text}";
                                   final cloudPicRef = context.read<LoginNotifier>()._storage.ref().child(cloudPath);
                                   final profilePicCloudURL =  await cloudPicRef.getDownloadURL();
@@ -330,21 +315,15 @@ class _RandomWordsState extends State<RandomWords> {
                                     profilePicLocal = null;
                                     profilePicCloud = NetworkImage(profilePicCloudURL);
                                   });
-                                  Navigator.pop(context);// get back to previous page
 
+                                  // get back to the main page
+                                  Navigator.pop(context);
+
+
+                                  //update the user favorites list on the cloud
                                   List currSuggestionsSecond = doc?.get('suggestionsSecond');
                                   // Future<void> newDocRes = context.read<LoginNotifier>().addOrUpdateUserSuggestions(emailController.text, _saved.toList(), currSuggestionsFirst, currSuggestionsSecond);
                                   await context.read<LoginNotifier>().addOrUpdateUserSuggestions(emailController.text, _saved.toList(), currSuggestionsFirst, currSuggestionsSecond);
-
-                                  //handle profile pic
-                                  // _handleProfilePicUpdate();
-                                  // String cloudPath = "images/profile_pics/profile_${emailController.text}";
-                                  // final cloudPicRef = context.read<LoginNotifier>()._storage.ref().child(cloudPath);
-                                  // final profilePicCloudURL =  await cloudPicRef.getDownloadURL();
-                                  // setState((){
-                                  //   profilePicLocal = null;
-                                  //   profilePicCloud = NetworkImage(profilePicCloudURL);
-                                  // });
 
                                 } else {
                                   const loginErrorSnackBar = SnackBar(
@@ -680,167 +659,6 @@ class _RandomWordsState extends State<RandomWords> {
       ];
     }
     // final Future<DocumentSnapshot> _getDoc = context.read<LoginNotifier>().getUserSuggestions(emailController.text);
-    final snappingSheetController = SnappingSheetController();
-
-    // Column col = Column(
-    //   children: <Widget>[
-    //     Expanded(
-    //         flex: 10-2,
-    //         child: ListView.builder(
-    //           padding: const EdgeInsets.all(16.0),
-    //           itemBuilder: (context, i) {
-    //             if (i.isOdd) return const Divider();
-    //
-    //             final index = i ~/ 2;
-    //             if (index >= _suggestions.length) {
-    //               _suggestions.addAll(generateWordPairs().take(10));
-    //             }
-    //             final alreadySaved = _saved.contains(_suggestions[index]);
-    //             // final Future<DocumentSnapshot> _getDoc = context.read<LoginNotifier>().getUserSuggestions(emailController.text);
-    //             return (status == Status.Unauthenticated)
-    //                 ? ListTile(
-    //                     title: Text(
-    //                       _suggestions[index].asPascalCase,
-    //                       style: _biggerFont,
-    //                     ),
-    //                     trailing: Icon(
-    //                       alreadySaved ? Icons.favorite : Icons.favorite_border,
-    //                       color: alreadySaved ? Colors.red : null,
-    //                       semanticLabel:
-    //                           alreadySaved ? 'Remove from saved' : 'Save',
-    //                     ),
-    //                     onTap: () {
-    //                       setState(() {
-    //                         if (alreadySaved) {
-    //                           _saved.remove(_suggestions[index]);
-    //                         } else {
-    //                           _saved.add(_suggestions[index]);
-    //                         }
-    //                       });
-    //                     },
-    //                   )
-    //                 :
-    //                 //FutureBuilder and ListTile for connected users
-    //                 FutureBuilder<DocumentSnapshot>(
-    //                     future: context
-    //                         .read<LoginNotifier>()
-    //                         .getUserSuggestions(emailController.text),
-    //                     builder: (context, snapshot) {
-    //                       if (snapshot.connectionState ==
-    //                           ConnectionState.done) {
-    //                         status = Status.Authenticated;
-    //                         // List suggestionsFirstCloud = snapshot.data?['suggestionsFirst'] ?? [];
-    //                         // List suggestionsSecondCloud = snapshot.data?['suggestionsSecond'] ?? [];
-    //                         List suggestionsFirstCloud =
-    //                             context.read<LoginNotifier>()._suggestionsFirst;
-    //                         List suggestionsSecondCloud = context
-    //                             .read<LoginNotifier>()
-    //                             ._suggestionsSecond;
-    //                         _savedCloud..clear();
-    //
-    //                         for (var i = 0;
-    //                             i < suggestionsFirstCloud.length;
-    //                             i++) {
-    //                           _savedCloud.add(WordPair(suggestionsFirstCloud[i],
-    //                               suggestionsSecondCloud[i]));
-    //                           print(
-    //                               'suggestionsFirst $i : $suggestionsFirstCloud');
-    //                           print(
-    //                               'suggestionsSecond $i : $suggestionsSecondCloud');
-    //                         }
-    //
-    //                         final alreadySavedCloud =
-    //                             _savedCloud.contains(_suggestions[index]);
-    //                         return ListTile(
-    //                           title: Text(
-    //                             _suggestions[index].asPascalCase,
-    //                             style: _biggerFont,
-    //                           ),
-    //                           trailing: Icon(
-    //                             alreadySavedCloud
-    //                                 ? Icons.favorite
-    //                                 : Icons.favorite_border,
-    //                             color: alreadySavedCloud ? Colors.red : null,
-    //                             semanticLabel: alreadySavedCloud
-    //                                 ? 'Remove from saved'
-    //                                 : 'Save',
-    //                           ),
-    //                           onTap: () {
-    //                             setState(() {
-    //                               if (alreadySavedCloud) {
-    //                                 _savedCloud.remove(_suggestions[index]);
-    //                               } else {
-    //                                 _savedCloud.add(_suggestions[index]);
-    //                               }
-    //                             });
-    //                             context
-    //                                 .read<LoginNotifier>()
-    //                                 .addOrUpdateUserSuggestions(
-    //                                     emailController.text,
-    //                                     _savedCloud.toList(), [], []);
-    //                           },
-    //                         );
-    //                       } else {
-    //                         // return ListTile(
-    //                         // title: Text('An error from line: ${StackTrace.current}')
-    //                         // );
-    //                         // return CircularProgressIndicator();
-    //                         final alreadySavedCloud =
-    //                             _savedCloud.contains(_suggestions[index]);
-    //                         return ListTile(
-    //                           title: Text(
-    //                             _suggestions[index].asPascalCase,
-    //                             style: _biggerFont,
-    //                           ),
-    //                           trailing: Icon(
-    //                             alreadySavedCloud
-    //                                 ? Icons.favorite
-    //                                 : Icons.favorite_border,
-    //                             color: alreadySavedCloud ? Colors.red : null,
-    //                             semanticLabel: alreadySavedCloud
-    //                                 ? 'Remove from saved'
-    //                                 : 'Save',
-    //                           ),
-    //                           onTap: () {
-    //                             setState(() {
-    //                               if (alreadySavedCloud) {
-    //                                 _savedCloud.remove(_suggestions[index]);
-    //                               } else {
-    //                                 _savedCloud.add(_suggestions[index]);
-    //                               }
-    //                             });
-    //                             context
-    //                                 .read<LoginNotifier>()
-    //                                 .addOrUpdateUserSuggestions(
-    //                                     emailController.text,
-    //                                     _savedCloud.toList(), [], []);
-    //                           },
-    //                         );
-    //                       }
-    //                     });
-    //           },
-    //         )),
-    //     Expanded(
-    //       flex: 1,
-    //       child: GestureDetector(
-    //         onTap: () {
-    //           print("snappingSheetController.isAttached ${snappingSheetController.isAttached}:");
-    //         },
-    //         child: SnappingSheet(
-    //           child: ListTile(
-    //             title: Text(
-    //               'Welcome back, ${emailController.text}',
-    //               style: _biggerFont,
-    //             ),
-    //             trailing: Icon(Icons.keyboard_arrow_up),
-    //             tileColor: Colors.grey,
-    //           )
-    //         )
-    //       )
-    //     ),
-    //   ],
-    // );
-
     final ListView listView = ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemBuilder: (context, i) {
@@ -878,7 +696,11 @@ class _RandomWordsState extends State<RandomWords> {
             FutureBuilder<DocumentSnapshot>(
                 future: context
                     .read<LoginNotifier>()
-                    .getUserSuggestions(emailController.text),
+                    .getUserSuggestions(emailController.text).catchError((e){
+                      setState(() {
+                        context.read<LoginNotifier>().status = Status.Unauthenticated;
+                      });
+                }),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     status = Status.Authenticated;
@@ -974,6 +796,7 @@ class _RandomWordsState extends State<RandomWords> {
           ? listView
           : SnappingSheet(
               lockOverflowDrag: true,
+              controller: snappingSheetController,
               snappingPositions: [
                 SnappingPosition.factor(
                   positionFactor: 0.0,
@@ -990,11 +813,32 @@ class _RandomWordsState extends State<RandomWords> {
               grabbingHeight: 50,
               grabbing: GestureDetector(
                 onTap: () {
-                  // print('I was Tapped!');
-                  // print(
-                  //     'snappingSheetController: ${snappingSheetController.isAttached}');
-                  // snappingSheetController.snapToPosition(
-                  //     SnappingPosition.factor(positionFactor: 0.7));
+                  if(snappingSheetController.isAttached) {
+                    print('I was Tapped!');
+                    if (snappingSheetController.currentSnappingPosition ==
+                        SnappingPosition.factor(
+                          snappingCurve: Curves.elasticOut,
+                          snappingDuration: Duration(milliseconds: 1750),
+                          positionFactor: 0.2,
+                        )) {
+                      snappingSheetController.snapToPosition(
+                          SnappingPosition.factor(
+                            positionFactor: 0.0,
+                            grabbingContentOffset: GrabbingContentOffset.top,
+                          ));
+                    } else {
+                      snappingSheetController.snapToPosition(
+                          SnappingPosition.factor(
+                            snappingCurve: Curves.elasticOut,
+                            snappingDuration: Duration(milliseconds: 1750),
+                            positionFactor: 0.2,
+                          ));
+                    }
+                    // print(
+                    //     'snappingSheetController: ${snappingSheetController.isAttached}');
+                    // snappingSheetController.snapToPosition(
+                    //     SnappingPosition.factor(positionFactor: 0.7));
+                  }
                 },
                 child: Container(
                   color: Colors.grey.shade300,
@@ -1007,7 +851,6 @@ class _RandomWordsState extends State<RandomWords> {
                   ),
                 ),
               ),
-              controller: snappingSheetController,
               sheetBelow: SnappingSheetContent(
                 // childScrollController: _scrollController,
                 draggable: true,
@@ -1069,53 +912,5 @@ class _RandomWordsState extends State<RandomWords> {
               ),
             ),
     );
-
-    // return FutureBuilder<DocumentSnapshot>(
-    //   future: _getDoc,
-    //   builder: (context, snapshot){
-    //     if(snapshot.connectionState == ConnectionState.done){
-    //       // Map<String, dynamic> data = snapshot.data?.data() ?? {'error': 'error'};
-    //
-    //     }
-    //   }
-    // );
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: const Text('Startup Name Generator'),
-    //     actions: appBarActions,
-    //   ),
-    //   body: ListView.builder(
-    //     padding: const EdgeInsets.all(16.0),
-    //     itemBuilder: (context, i) {
-    //       if (i.isOdd) return const Divider();
-    //
-    //       final index = i ~/ 2;
-    //       if (index >= _suggestions.length) {
-    //         _suggestions.addAll(generateWordPairs().take(10));
-    //       }
-    //       final alreadySaved = _saved.contains(_suggestions[index]);
-    //       return ListTile(
-    //         title: Text(
-    //           _suggestions[index].asPascalCase,
-    //           style: _biggerFont,
-    //         ),
-    //         trailing: Icon(
-    //           alreadySaved ? Icons.favorite : Icons.favorite_border,
-    //           color: alreadySaved ? Colors.red : null,
-    //           semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
-    //         ),
-    //         onTap: () {
-    //           setState(() {
-    //             if (alreadySaved) {
-    //               _saved.remove(_suggestions[index]);
-    //             } else {
-    //               _saved.add(_suggestions[index]);
-    //             }
-    //           });
-    //         },
-    //       );
-    //     },
-    //   ),
-    // );
   }
 }
